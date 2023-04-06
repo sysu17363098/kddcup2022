@@ -8,13 +8,15 @@ from prepare import prep_env
 warnings.simplefilter('ignore')
 
 
-def simple_diff(series: np.ndarray):
+def simple_diff(series: np.ndarray): #?
     return series.diff()
 
-def simple_diff2(series: np.ndarray):
+def simple_diff2(series: np.ndarray): #?
+    # diff(x) calculate the differences of each element compared to row x
     return series.diff(2)
 
-def add_features(df):
+def add_features(df): #!!!!!
+    # Invalid Cases Imputation
     df = fill_data(df)
     df['hour'] = (pd.to_datetime(df['Tmstamp']).dt.hour).astype('int')  # 24
     df['time_index'] = (pd.to_datetime(df['Tmstamp']).dt.minute / 10 + pd.to_datetime(df['Tmstamp']).dt.hour * 6).\
@@ -25,6 +27,8 @@ def add_features(df):
 
 def fill_data(df):
     settings = prep_env()
+
+    # Invalid Conditions for Outliers   
     invalid_cond = (df['Patv'] < 0) | \
                    ((df['Patv'] == 0) & (df['Wspd'] > 2.5))
     df.Patv[invalid_cond] = np.NaN
@@ -36,40 +40,68 @@ def fill_data(df):
     df[df['Ndir'] > 720]['Ndir'] = np.NaN
     df[df['Ndir'] < -720]['Ndir'] = np.NaN
     group = settings['group_config']
+
+    # Assign Group ID
     df['gid'] = df.TurbID.apply(lambda x: group[x - 1])
+
+    # Fill Patv np.NAN
     values = df.groupby(['Day', 'Tmstamp', 'gid'])['Patv'].transform('mean')
     df.Patv = np.where(df.Patv.notnull(), df.Patv, values)
+
+    # Linear Interpolation For Outliers
     df = df.interpolate().fillna(method='bfill')
     df.drop(['gid'], axis=1, inplace=True)
     return df
 
 def invalid_data(raw_data):
+    # used ?
     return ~(raw_data['Patv'] < 0)
 
 def get_train_data_part(settings):
+    """
+    input:  settings(dict) < prepare.py
+    output:
+        training_data_list      part_i：(train_features, train_features_cat, train_targets)
+        col_num                 Number of feature 
+        RS_list                 Robust Scaler for each group
+        RS_target_list          Standard 
+    desc:
+        data preprocessing and prepare training set
+    """
     print("Loading train data")
     df = pd.read_csv(os.path.join(settings['data_path'], settings['filename']))
+
     print('Adding features')
-    df = add_features(df)
+    df = add_features(df) # !!!! modify later
+
+    # Remove features # !!!!
     cols = [c for c in df.columns if c not in settings['remove_features']]
     df = df[cols]
     print("data cols", df.columns)
+
     training_data_list = {}
     RS_list = {}
     RS_target_list = {}
     cat_col = settings['cat_features']
     part = {}
-    for trub_id, i in enumerate(settings['group_config'], 1):
+    # TODO: Turbind ID start from 1 or not(after func:add_feature)?
+    for trub_id, i in enumerate(settings['group_config'], start=1):
         if i not in part: part[i] = []
         part[i].append(trub_id)
+    
+
     for i in range(settings['part_num']):
         df_train = df[df.TurbID.isin(part[i])]
         train_features = df_train.drop(columns=['Day', 'TurbID'] + cat_col)
-        train_features_cat = df_train[cat_col].to_numpy()
+        train_features_cat = df_train[cat_col].to_numpy() 
         col_num = len(train_features.columns)
         train_targets = df_train['Patv']
+
+        # Robust Scale For Features
         RS_list[i] = RobustScaler()
         train_features = RS_list[i].fit_transform(train_features)
+
+        # Standard Scale For Target(Patv)
         RS_target_list[i] = StandardScaler()
         train_targets = RS_target_list[i].fit_transform(train_targets.to_numpy().reshape(-1, 1))
         training_data_list[i] = (train_features, train_features_cat, train_targets)

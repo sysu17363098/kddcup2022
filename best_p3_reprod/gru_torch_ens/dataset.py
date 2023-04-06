@@ -13,8 +13,11 @@ class TrainDataset(Dataset):
         return len(self.features) - self.output_len - self.input_len + 1
 
     def __getitem__(self, index):
+        # sliding windows
         output_begin = index + self.input_len
         output_end = index + self.input_len + self.output_len
+        # TODO: What is features cat for????
         return self.features[index: index + self.input_len].astype('float32') \
             , self.features_cat[index: index + self.input_len] \
             , self.targets[output_begin: output_end].reshape(-1).astype('float32')
+    # reshape(-1): turn (a,b) into (a*b, )

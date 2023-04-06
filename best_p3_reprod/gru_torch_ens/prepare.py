@@ -26,7 +26,7 @@ def prep_env():
         'learning_rate': 1e-4,
         'batch_size': 2048,
         'random_seed': 2020,
-        'part_num': 24,
+        'part_num': 24,  # num of group
         'group_config': [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5,
                          5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10,
                          11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14,
@@ -38,8 +38,9 @@ def prep_env():
         'stride': 1,
         "gpu": 0,
         'is_debug': True,
-        'remove_features': ['Tmstamp', 'Wdir', 'Etmp', 'Itmp', 'Ndir', 'Pab2', 'Pab3', 'Prtv'],
-        'cat_features': ['time_index', 'hour', 'tid'],
+        # TODO:
+        'remove_features': ['Tmstamp', 'Wdir', 'Etmp', 'Itmp', 'Ndir', 'Pab2', 'Pab3', 'Prtv'], # ！Too much??
+        'cat_features': ['time_index', 'hour', 'tid'], # added features to be dropped
         'embed_dim': 2,
         'pos_embed_dim': 16,
         "lstm_layer": 2,

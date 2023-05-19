@@ -334,14 +334,4 @@ def eval(submit_file):
         raise Exception(msg[:200])
 
 if __name__ == "__main__":
-    # eval on toy test set
-    # print(eval('submit.zip'))
-    # eval on 10 sub test sets
-    global TAR_DIR, PRED_DIR
-    for i in range(10):
-        test_x = "./data/"+(4-len(str(i+1)))*"0"+str(i+1)+"in.zip"
-        test_y = "./data/"+(4-len(str(i+1)))*"0"+str(i+1)+"out.zip"
-        PRED_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), test_x))
-        TAR_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), test_y))
-        print(eval('submit.zip'))
-
+    print(eval('submit.zip'))
